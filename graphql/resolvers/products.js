@@ -31,7 +31,10 @@ export default {
     }
   },
 
-  addProduct: async (args) => {
+  addProduct: async (args, req) => {
+    if (!req.isAdmin || !req.isAuth) {
+      throw new Error("User not authorized");
+    }
     try {
       const goods = new Product({
         collectionName: args.productInput.collectionName,
@@ -101,13 +104,18 @@ export default {
     }
   },
 
-  updateProduct: async (args) => {
+  updateProduct: async (args, req) => {
     let item = await Product.findById(args.productInput.productId);
-    console.log(args.productInput.productId);
     const options = { new: true };
+
+    if (!req.isAdmin || !req.isAuth) {
+      throw new Error("User not authorized");
+    }
+
     if (!item) {
       throw new Error("No product found");
     }
+
     try {
       const goods = {
         collectionName: args.productInput.collectionName,
@@ -130,10 +138,6 @@ export default {
         goods,
         options
       );
-
-      // const result = await goods.save();
-
-      console.log(result._doc);
 
       return {
         ...result._doc,
@@ -165,7 +169,10 @@ export default {
     // }
   },
 
-  deleteProduct: async ({ productId }) => {
+  deleteProduct: async ({ productId }, req) => {
+    if (!req.isAdmin || !req.isAuth) {
+      throw new Error("User not authorized");
+    }
     try {
       let goods = await Product.findById(productId);
       if (!goods) {

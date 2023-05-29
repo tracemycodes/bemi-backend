@@ -40,7 +40,9 @@ export default {
   createUser: async (args) => {
     const { email, firstName, lastName } = args.userInput;
     try {
-      const client = await User.findOne({ email: args.userInput.email.toLowerCase() });
+      const client = await User.findOne({
+        email: args.userInput.email.toLowerCase(),
+      });
 
       if (client) {
         throw new Error("User already exist");
@@ -105,8 +107,8 @@ export default {
       loginInput: { email, password },
     } = req;
 
-    let user = await User.findOne({ email: email.toLowerCase() });
     try {
+      let user = await User.findOne({ email: email.toLowerCase() });
       // console.log(user);
       if (!user) {
         throw new Error("User doesn't exist");
@@ -123,18 +125,23 @@ export default {
         userId: user._id,
         token: token,
         tokenExpiration: 3,
-        isAdmin: args.isAdmin,
+        isAdmin: user.isAdmin,
       };
     } catch (err) {
       console.log(err);
     }
   },
-  updateUser: async (args) => {
+  updateUser: async (args, req) => {
+    if (!req.userId || !req.isAuth) {
+      throw new Error("User unauthorize");
+    }
     try {
-      const client = await User.findById(args.addressInput.uuid);
+      const client = await User.findById(req.userId);
       if (!client) {
         throw new Error("User for this address doesn't exist");
       }
+
+      console.log(args.addressInput, "line 114");
 
       const address = new Address({
         firstName: args.addressInput.firstName,
@@ -146,7 +153,7 @@ export default {
         state: args.addressInput.state,
         zipCode: args.addressInput.zipCode,
         phone: args.addressInput.phone,
-        userAddress: args.addressInput.uuid,
+        userAddress: req.userId,
         default: args.addressInput.default,
       });
 
@@ -198,7 +205,7 @@ export default {
       await client.save();
 
       const addressList = await Address.find({
-        userAddress: args.addressInput.uuid,
+        userAddress: req.userId,
       });
 
       return addressList.map((item) => {
@@ -211,12 +218,12 @@ export default {
       throw err;
     }
   },
-  getUser: async (req, args) => {
+  getUser: async (_, args) => {
     try {
-      if (!req.userId) {
+      if (!args.userId || !args.isAuth) {
         throw new Error("User unauthorize");
       }
-      let user = await User.findById(req.userId);
+      let user = await User.findById(args.userId);
 
       if (!user) {
         throw new Error("User not found");
@@ -225,7 +232,7 @@ export default {
       return {
         ...user._doc,
         password: null,
-        _id: user._doc._id.toString(),
+        _id: "",
         address: user.userAddress,
       };
     } catch (error) {
@@ -314,9 +321,90 @@ export default {
         newUser,
         options
       );
-      return {msg: 'password changed successfully'}
+      return { msg: "password changed successfully" };
     } catch (err) {
       console.log(err);
+      throw err;
+    }
+  },
+  getAddress: async (_, req) => {
+    if (!req.userId || !req.isAuth) {
+      throw new Error("User unauthorize");
+    }
+    try {
+      const address = await Address.find({ userAddress: req.userId });
+      if (!address) {
+        throw new Error("Address not found");
+      }
+      console.log(address, 'this is it', req.userId);
+      return address.map((user) => {
+        return {
+          ...user._doc,
+          _id: user._doc._id.toString(),
+          userAddress: null,
+        };
+      });
+    } catch (err) {
+      throw err;
+    }
+  },
+  updateAddress: async (args, req) => {
+    if (!req.userId || !req.isAuth) {
+      throw new Error("User unauthorize");
+    }
+    try {
+      let address = await Address.findById(args.addressInput.id);
+      const options = { new: true };
+
+      if (!address) {
+        throw new Error("address not found");
+      }
+
+      const item = {
+        firstName: args.addressInput.firstName,
+        lastName: args.addressInput.lastName,
+        address: args.addressInput.address,
+        apartment: args.addressInput.apartment,
+        city: args.addressInput.city,
+        country: args.addressInput.country,
+        state: args.addressInput.state,
+        zipCode: args.addressInput.zipCode,
+        phone: args.addressInput.phone,
+        userAddress: req.userId,
+        default: args.addressInput.default,
+      };
+
+      const result = await Address.findByIdAndUpdate(
+        args.addressInput.id,
+        item,
+        options
+      );
+
+      return {
+        ...result._doc,
+        _id: result._doc._id.toString(),
+      };
+    } catch (err) {
+      throw err;
+    }
+  },
+  deleteAddress: async ({ addressId }, req) => {
+    if (!req.isAdmin || !req.isAuth) {
+      throw new Error("User not authorized");
+    }
+    try {
+      let address = await Address.findById(addressId);
+      if (!address) {
+        throw new Error("No product found");
+      }
+
+      const result = await Address.findByIdAndDelete(addressId);
+
+      return {
+        ...result._doc,
+        _id: result._doc._id.toString(),
+      };
+    } catch (err) {
       throw err;
     }
   },

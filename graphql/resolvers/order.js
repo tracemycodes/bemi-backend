@@ -2,7 +2,10 @@ import Order from "../../models/orderModel.js";
 import User from "../../models/userModel.js";
 
 export default {
-  orders: async () => {
+  orders: async (_, req) => {
+    if (!req.isAuth) {
+      throw new Error("User not authorized");
+    }
     try {
       const result = await Order.find({ paid: true });
 
@@ -20,8 +23,25 @@ export default {
     }
   },
 
+  getOrders: async (_, req) => {
+    if (!req.isAuth) {
+      throw new Error("User not authorized");
+    }
+    try {
+      const result = await Order.find({ user: req.userId })
+
+      return result.map(async (order) => {
+        return {
+          ...order._doc,
+          _id: order._doc._id.toString(),
+        };
+      });
+    } catch (err) {
+      throw err;
+    }
+  },
+
   addOrder: async (args) => {
-    console.log(args);
     try {
       const order = new Order({
         user: args.orderInput.user,
@@ -72,7 +92,11 @@ export default {
     }
   },
 
-  updateOrder: async (args) => {
+  updateOrder: async (args, req) => {
+    if (!req.isAdmin || !req.isAuth) {
+      throw new Error("User not authorized");
+    }
+
     try {
       const options = { new: true };
       const orderId = args.orderInput.orderId;

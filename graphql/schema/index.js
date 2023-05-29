@@ -2,6 +2,7 @@ import { buildSchema } from "graphql";
 
 export default buildSchema(`
       type Address {
+        _id: String
         uuid: String
         firstName: String
         lastName: String
@@ -16,17 +17,18 @@ export default buildSchema(`
       }
       
       input AddressInput {
-        uuid: String!
+        id: String
         firstName: String
         lastName: String
-        address: String!
-        apartment: String!
+        address: String
+        apartment: String
         city: String
         country: String
         state: String
         zipCode: String
         phone: String
         default: Boolean
+        userAddress: String
       }
 
       type User {
@@ -185,6 +187,7 @@ export default buildSchema(`
         products: [productPurchase]
         transactionId: String
         createdAt: String
+        updatedAt: String
         email: String
         name: String
       }
@@ -216,6 +219,7 @@ export default buildSchema(`
         orders: [Order!]!
         getOrders: [Order!]!
         singleOrder(orderId: String): Order!
+        getAddress: [Address]
       }
       
       type RootMutation {
@@ -230,6 +234,8 @@ export default buildSchema(`
         addOrder(orderInput: OrderInput!): Order!
         updateOrder(orderInput: OrderInput): Order!
         uploadMedia(mediaInput: String): MediaFile
+        updateAddress(addressInput: AddressInput): Address
+        deleteAddress(addressId: String): Address
       }
 
       schema {
