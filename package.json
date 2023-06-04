@@ -1,0 +1,51 @@
+{
+  "name": "e_commerce_store",
+  "version": "1.0.0",
+  "description": "MERN full-stack E-commerce store",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server/index",
+    "server": "nodemon server/index",
+    "client": "npm start --prefix client",
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "data:import": "node server/seeder",
+    "data:destroy": "node server/seeder -d"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Bemi-Ivory/fashion_e_commerce_store.git"
+  },
+  "author": "tracemycodes",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Bemi-Ivory/fashion_e_commerce_store/issues"
+  },
+  "homepage": "https://github.com/Bemi-Ivory/fashion_e_commerce_store#readme",
+  "dependencies": {
+    "@headlessui/react": "^1.7.10",
+    "bcryptjs": "^2.4.3",
+    "cloudinary": "^1.32.0",
+    "colors": "^1.4.0",
+    "cookie-session": "^2.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.2",
+    "express": "^4.18.1",
+    "express-async-handler": "^1.2.0",
+    "express-graphql": "^0.12.0",
+    "express-session": "^1.17.3",
+    "googleapis": "^114.0.0",
+    "graphql": "^16.6.0",
+    "jsonwebtoken": "^8.5.1",
+    "mongoose": "^6.6.1",
+    "nodemailer": "^6.9.1",
+    "passport": "^0.6.0",
+    "passport-google-oauth20": "^2.0.0",
+    "react-paginate": "^8.1.4",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "concurrently": "^7.4.0",
+    "nodemon": "^2.0.19"
+  }
+}
