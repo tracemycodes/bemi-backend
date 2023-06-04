@@ -1,6 +1,5 @@
 import express from 'express';
 import dotenv from 'dotenv';
-import colors from 'colors';
 import passport from 'passport';
 import session from 'express-session';
 import cors from 'cors';
@@ -73,4 +72,4 @@ app.use(
 app.use(notFound);
 app.use(errorHandler);
 
-app.listen(PORT, console.log(`server running on port ${PORT}`.yellow.bold));
+app.listen(PORT, console.log(`server running on port ${PORT}`));
