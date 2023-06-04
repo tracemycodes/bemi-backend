@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import express from 'express';
 
-const app = express();
+// const app = express();
 
 const connectDB = async () => {
   const PORT = process.env.PORT || 5000;
@@ -12,7 +12,7 @@ const connectDB = async () => {
       useNewUrlParser: true,
     });
     console.log(`MongoDB Connected: ${conn.connection.host}`.cyan.underline);
-    app.listen(PORT, console.log(`server running on port ${PORT}`.yellow.bold));
+    // app.listen(PORT, console.log(`server running on port ${PORT}`.yellow.bold));
   } catch (err) {
     console.error(`Error: ${err.message}`.red.underline.bold);
     process.exit(1);
