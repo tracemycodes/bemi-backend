@@ -40,7 +40,7 @@ export default {
   createUser: async (args) => {
     const { email, firstName, lastName } = args.userInput;
     try {
-      const client = await User.findOne({ email: args.userInput.email });
+      const client = await User.findOne({ email: args.userInput.email.toLowerCase() });
 
       if (client) {
         throw new Error("User already exist");
@@ -85,7 +85,7 @@ export default {
       const user = new User({
         firstName: args.userInput.firstName,
         lastName: args.userInput.lastName,
-        email: args.userInput.email,
+        email: args.userInput.email.toLowerCase(),
         password: args.userInput.password,
       });
 
@@ -105,7 +105,7 @@ export default {
       loginInput: { email, password },
     } = req;
 
-    let user = await User.findOne({ email: email });
+    let user = await User.findOne({ email: email.toLowerCase() });
     try {
       // console.log(user);
       if (!user) {
@@ -211,12 +211,12 @@ export default {
       throw err;
     }
   },
-  getUser: async (_, args) => {
+  getUser: async (req, args) => {
     try {
-      if (!args.userId) {
+      if (!req.userId) {
         throw new Error("User unauthorize");
       }
-      let user = await User.findById(args.userId);
+      let user = await User.findById(req.userId);
 
       if (!user) {
         throw new Error("User not found");
