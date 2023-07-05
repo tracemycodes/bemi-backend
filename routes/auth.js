@@ -1,21 +1,23 @@
-import { Router } from "express";
-import passport from "passport";
-import generateToken from "../utils/generateToken.js";
-import User from "../models/userModel.js";
+import { Router } from 'express';
+import passport from 'passport';
+import generateToken from '../utils/generateToken.js';
+import User from '../models/userModel.js';
 
 const router = Router();
 
 router.get(
-  "/google",
-  passport.authenticate("google", { scope: ["email", "profile"] })
+  '/google',
+  passport.authenticate('google', { scope: ['email', 'profile'] })
 );
 
-router.get("/login/success", async (req, res) => {
+router.get('/login/success', async (req, res) => {
+
+  console.log(req.sessionStore.MemoryStore?.sessions);
   const { user } = req;
   try {
     if (user) {
       const userData = await User.findOne({ googleId: user });
-      if (!userData) res.status(401).json({ message: " Unauthorized user" });
+      if (!userData) res.status(401).json({ message: ' Unauthorized user' });
 
       const token = await generateToken(
         userData._id,
@@ -23,29 +25,38 @@ router.get("/login/success", async (req, res) => {
         userData.isAdmin
       );
       res.status(200).json({
-        success: true,
-        message: "successfull",
+        userId: userData._id,
         token: token,
+        isAdmin: userData.isAdmin,
       });
+    } else {
+      throw new Error({message: 'user not found'})
     }
   } catch (err) {
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 });
 
-router.get("/login/failed", (req, res) => {
+router.get('/login/failed', (req, res) => {
   res.status(401).json({
     success: false,
-    message: "failure",
+    message: 'failure',
   });
 });
 
 router.get(
-  "/google/callback",
-  passport.authenticate("google", {
-    successRedirect: "http://localhost:3000",
-    failureRedirect: "http://localhost:3000/login/",
-  })
+  '/google/callback',
+  passport.authenticate('google', {
+    failureRedirect: '/login',
+  }),
+  async (req, res) => {
+    if (req.user) {
+      const user = await User.findOne({ googleId: req.user.id });
+      res.redirect(process.env.FRONTEND_URL);
+    } else {
+      res.redirect(`${process.env.FRONTEND_URL}/signup`);
+    }
+  }
 );
 
 export default router;

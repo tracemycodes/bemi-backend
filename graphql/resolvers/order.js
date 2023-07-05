@@ -108,8 +108,6 @@ export default {
         throw { msg: "Order not found" };
       }
 
-      // console.log(order._doc);
-
       const result = await Order.findByIdAndUpdate(
         orderId,
         { ...order._doc, ...args.orderInput },

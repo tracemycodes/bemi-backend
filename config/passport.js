@@ -1,5 +1,5 @@
-import { Strategy } from "passport-google-oauth20";
-import User from "../models/userModel.js";
+import { Strategy } from 'passport-google-oauth20';
+import User from '../models/userModel.js';
 const GoogleStrategy = Strategy;
 
 const verifyUser = (passport) => {
@@ -9,33 +9,53 @@ const verifyUser = (passport) => {
         clientID: process.env.GOOGLE_CLIENT_ID,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
         callbackURL: `${process.env.APP_URI}/auth/google/callback`,
-        scope: ["profile", "email"], // add 'email' to scope
+        scope: ['profile', 'email'], // add 'email' to scope
       },
       async (accessToken, refreshToken, profile, done) => {
-        let userEmail = await User.findOne({ email: profile?._json?.email });
-        let userId = await User.findOne({ googleId: profile?.id });
-        if (!userEmail && !userId) {
-          let result = new User({
-            googleId: profile.id,
-            firstName: profile.name.givenName,
-            lastName: profile.name.familyName,
-            email: profile._json.email,
-          });
+        try {
+          const options = { new: true };
+          let userEmail = await User.findOne({ email: profile?._json?.email });
+          let result;
+          if (!userEmail) {
+            result = new User({
+              googleId: profile.id,
+              firstName: profile.name.givenName,
+              lastName: profile.name.familyName,
+              email: profile._json.email,
+            });
 
-          await result.save();
+            await result.save();
+          }
+          if (!userEmail.googleId) {
+            userEmail.googleId = profile.id;
+            await User.findByIdAndUpdate(
+              userEmail._id.toString(),
+              { ...userEmail, googleId: profile.id },
+              options
+            );
+          }
+          done(null, profile);
+        } catch (error) {
+          console.log(error);
+          throw error;
         }
-        done(null, profile);
       }
     )
   );
 
   passport.serializeUser((user, done) => {
-    done(null, user.id);
+    console.log(user);
+    done(null, user);
+    // done(null, user.id);
   });
-  
-  passport.deserializeUser((id, done) => {
-    User.findOne({ googleId: id }, (err, user) => {
-      done(err, user.googleId);
+
+  passport.deserializeUser(async (user, done) => {
+    console.log(user, 'deserialize no 53');
+
+    const userData = await User.findOne({ googleId : user })
+    console.log(userData);
+    await User.findOne({ googleId : user }, (err, user) => {
+      done(err, user);
     });
   });
 };
